@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-ChocobabiesReloaded-80f7e1c4-b786-4927-99ee-a04176517a76</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.18" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.18" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+    <PackageReference Include="SendGrid" Version="9.28.1" />
+    <PackageReference Include="Stripe.net" Version="43.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
+</Project>

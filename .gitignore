@@ -1,0 +1,8 @@
+﻿bin/
+obj/
+*.csproj.user
+*.suo
+*.log
+appsettings.Development.json
+.env
+.vs/
