@@ -1,4 +1,11 @@
 ﻿
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+COPY bin/Release/net8.0/publish/ .
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV PORT=10000
+EXPOSE 10000
+ENTRYPOINT ["dotnet", "ChocobabiesReloaded.dll"]
+
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -19,3 +26,5 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "ChocobabiesReloaded.dll"]
+
+
