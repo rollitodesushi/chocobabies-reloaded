@@ -3,6 +3,7 @@ using ChocobabiesReloaded.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Net.Sockets;
 
 namespace ChocobabiesReloaded.Controllers
@@ -33,6 +34,22 @@ namespace ChocobabiesReloaded.Controllers
                 return View();
             }
 
+            // Verificar si la rifa existe y es activa
+            var rifa = await _context.rifas
+                .FirstOrDefaultAsync(r => r.Id == rifaID && r.vigente);
+            if (rifa == null)
+            {
+                ModelState.AddModelError("", "Rifa no encontrada o ya cerró el sorteo.");
+                return View();
+            }
+
+            // Verificar si el número de tiquete ya está asignado
+            if (await _context.tiquetes.AnyAsync(t => t.rifaID == rifaID && t.numeroTiquete == numeroTiquete))
+            {
+                ModelState.AddModelError("", "Ese numero ya fue asignado a otro participante");
+                return View();
+            }
+
             var participante = new Participante
             {
                 nombre = nombre,
@@ -53,6 +70,8 @@ namespace ChocobabiesReloaded.Controllers
             _context.tiquetes.Add(tiquete);
             await _context.SaveChangesAsync();
 
+            // Pasar el precio del tiquete a la vista
+            ViewBag.PrecioTiquete = rifa.valorTiquete;
             return RedirectToAction("Index", "Home");
         }
     }
