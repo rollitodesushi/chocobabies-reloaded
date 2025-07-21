@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using ChocobabiesReloaded.Models;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using ChocobabiesReloaded.Models;
 using System.Net.Sockets;
 
 namespace ChocobabiesReloaded.Data
 {
-    public class RifaDbContext : IdentityDbContext<User, IdentityRole<int>, int>
-    
+    public class RifaDbContext : IdentityDbContext<User, IdentityRole<int>, int>, IDataProtectionKeyContext
+
     {
         public RifaDbContext(DbContextOptions<RifaDbContext> options)
             : base(options)
@@ -17,6 +18,8 @@ namespace ChocobabiesReloaded.Data
         public DbSet<Rifa> rifas { get; set; }
         public DbSet<Tiquete> tiquetes { get; set; }
         public DbSet<Participante> participantes { get; set; }
+
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChocobabiesReloaded.Migrations
 {
     [DbContext(typeof(RifaDbContext))]
-    [Migration("20250721010152_Migracion final")]
-    partial class Migracionfinal
+    [Migration("20250721174005_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,11 @@ namespace ChocobabiesReloaded.Migrations
 
             modelBuilder.Entity("ChocobabiesReloaded.Models.Participante", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<string>("email")
                         .IsRequired()
@@ -48,7 +48,7 @@ namespace ChocobabiesReloaded.Migrations
                     b.Property<int?>("userId")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.HasIndex("userId");
 
@@ -57,37 +57,40 @@ namespace ChocobabiesReloaded.Migrations
 
             modelBuilder.Entity("ChocobabiesReloaded.Models.Rifa", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
-                    b.Property<DateTime>("fechaSorteo")
+                    b.Property<DateTime>("fechaCierreSorteo")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("fechaInicioSorteo")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("nombre")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("valorTiquete")
+                    b.Property<decimal>("precioTiquete")
                         .HasColumnType("numeric");
 
                     b.Property<bool>("vigente")
                         .HasColumnType("boolean");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.ToTable("rifas");
                 });
 
             modelBuilder.Entity("ChocobabiesReloaded.Models.Tiquete", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<DateTime>("fechaCompra")
                         .HasColumnType("timestamp with time zone");
@@ -95,15 +98,15 @@ namespace ChocobabiesReloaded.Migrations
                     b.Property<int>("numeroTiquete")
                         .HasColumnType("integer");
 
-                    b.Property<int>("participanteID")
+                    b.Property<int>("participanteId")
                         .HasColumnType("integer");
 
                     b.Property<int>("rifaID")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
-                    b.HasIndex("participanteID");
+                    b.HasIndex("participanteId");
 
                     b.HasIndex("rifaID", "numeroTiquete")
                         .IsUnique();
@@ -180,6 +183,25 @@ namespace ChocobabiesReloaded.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -326,13 +348,13 @@ namespace ChocobabiesReloaded.Migrations
             modelBuilder.Entity("ChocobabiesReloaded.Models.Tiquete", b =>
                 {
                     b.HasOne("ChocobabiesReloaded.Models.Participante", "participante")
-                        .WithMany("Tiquetes")
-                        .HasForeignKey("participanteID")
+                        .WithMany()
+                        .HasForeignKey("participanteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ChocobabiesReloaded.Models.Rifa", "rifa")
-                        .WithMany("tiquetes")
+                        .WithMany()
                         .HasForeignKey("rifaID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -391,16 +413,6 @@ namespace ChocobabiesReloaded.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ChocobabiesReloaded.Models.Participante", b =>
-                {
-                    b.Navigation("Tiquetes");
-                });
-
-            modelBuilder.Entity("ChocobabiesReloaded.Models.Rifa", b =>
-                {
-                    b.Navigation("tiquetes");
                 });
 #pragma warning restore 612, 618
         }

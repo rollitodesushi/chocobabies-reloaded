@@ -55,19 +55,34 @@ namespace ChocobabiesReloaded.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "rifas",
+                name: "DataProtectionKeys",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    nombre = table.Column<string>(type: "text", nullable: false),
-                    fechaSorteo = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    vigente = table.Column<bool>(type: "boolean", nullable: false),
-                    valorTiquete = table.Column<decimal>(type: "numeric", nullable: false)
+                    FriendlyName = table.Column<string>(type: "text", nullable: true),
+                    Xml = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_rifas", x => x.Id);
+                    table.PrimaryKey("PK_DataProtectionKeys", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "rifas",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    nombre = table.Column<string>(type: "text", nullable: false),
+                    fechaInicioSorteo = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    fechaCierreSorteo = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    vigente = table.Column<bool>(type: "boolean", nullable: false),
+                    precioTiquete = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_rifas", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -180,7 +195,7 @@ namespace ChocobabiesReloaded.Migrations
                 name: "participantes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     userId = table.Column<int>(type: "integer", nullable: true),
                     nombre = table.Column<string>(type: "text", nullable: false),
@@ -189,7 +204,7 @@ namespace ChocobabiesReloaded.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_participantes", x => x.Id);
+                    table.PrimaryKey("PK_participantes", x => x.id);
                     table.ForeignKey(
                         name: "FK_participantes_AspNetUsers_userId",
                         column: x => x.userId,
@@ -201,27 +216,27 @@ namespace ChocobabiesReloaded.Migrations
                 name: "tiquetes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     rifaID = table.Column<int>(type: "integer", nullable: false),
-                    participanteID = table.Column<int>(type: "integer", nullable: false),
+                    participanteId = table.Column<int>(type: "integer", nullable: false),
                     numeroTiquete = table.Column<int>(type: "integer", nullable: false),
                     fechaCompra = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_tiquetes", x => x.Id);
+                    table.PrimaryKey("PK_tiquetes", x => x.id);
                     table.ForeignKey(
-                        name: "FK_tiquetes_participantes_participanteID",
-                        column: x => x.participanteID,
+                        name: "FK_tiquetes_participantes_participanteId",
+                        column: x => x.participanteId,
                         principalTable: "participantes",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_tiquetes_rifas_rifaID",
                         column: x => x.rifaID,
                         principalTable: "rifas",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -268,9 +283,9 @@ namespace ChocobabiesReloaded.Migrations
                 column: "userId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_tiquetes_participanteID",
+                name: "IX_tiquetes_participanteId",
                 table: "tiquetes",
-                column: "participanteID");
+                column: "participanteId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_tiquetes_rifaID_numeroTiquete",
@@ -296,6 +311,9 @@ namespace ChocobabiesReloaded.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "DataProtectionKeys");
 
             migrationBuilder.DropTable(
                 name: "tiquetes");

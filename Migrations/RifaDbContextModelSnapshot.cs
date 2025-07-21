@@ -24,11 +24,11 @@ namespace ChocobabiesReloaded.Migrations
 
             modelBuilder.Entity("ChocobabiesReloaded.Models.Participante", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<string>("email")
                         .IsRequired()
@@ -45,7 +45,7 @@ namespace ChocobabiesReloaded.Migrations
                     b.Property<int?>("userId")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.HasIndex("userId");
 
@@ -54,11 +54,11 @@ namespace ChocobabiesReloaded.Migrations
 
             modelBuilder.Entity("ChocobabiesReloaded.Models.Rifa", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<DateTime>("fechaCierreSorteo")
                         .HasColumnType("timestamp with time zone");
@@ -70,24 +70,24 @@ namespace ChocobabiesReloaded.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("valorTiquete")
+                    b.Property<decimal>("precioTiquete")
                         .HasColumnType("numeric");
 
                     b.Property<bool>("vigente")
                         .HasColumnType("boolean");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.ToTable("rifas");
                 });
 
             modelBuilder.Entity("ChocobabiesReloaded.Models.Tiquete", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<DateTime>("fechaCompra")
                         .HasColumnType("timestamp with time zone");
@@ -95,15 +95,15 @@ namespace ChocobabiesReloaded.Migrations
                     b.Property<int>("numeroTiquete")
                         .HasColumnType("integer");
 
-                    b.Property<int>("participanteID")
+                    b.Property<int>("participanteId")
                         .HasColumnType("integer");
 
                     b.Property<int>("rifaID")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
-                    b.HasIndex("participanteID");
+                    b.HasIndex("participanteId");
 
                     b.HasIndex("rifaID", "numeroTiquete")
                         .IsUnique();
@@ -180,6 +180,25 @@ namespace ChocobabiesReloaded.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -327,7 +346,7 @@ namespace ChocobabiesReloaded.Migrations
                 {
                     b.HasOne("ChocobabiesReloaded.Models.Participante", "participante")
                         .WithMany()
-                        .HasForeignKey("participanteID")
+                        .HasForeignKey("participanteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
