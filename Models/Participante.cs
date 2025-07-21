@@ -11,7 +11,6 @@ namespace ChocobabiesReloaded.Models
         public string nombre { get; set; } // Full name of the participant
         public string email { get; set; } // Email of the participant
         public string numeroTelefonico { get; set; } // Phone number of the participant
-        public List<Tiquete> Tiquetes { get; set; }
-
+        
     }
 }

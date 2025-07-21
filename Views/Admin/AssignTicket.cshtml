@@ -1,0 +1,25 @@
+﻿@model dynamic
+@{
+    ViewBag.Title = "Assign Ticket";
+}
+<h2>Asignar tiquete de rifa #@ViewBag.RifaID</h2>
+<form asp-action="AssignTicket" method="post">
+    <input type="hidden" name="rifaID" value="@ViewBag.RifaID" />
+    <div class="form-group">
+        <label>Nombre Completo</label>
+        <input name="nombre" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input name="email" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Telefono</label>
+        <input name="numeroTelefonico" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Numero elegido</label>
+        <input name="numeroTiquete" type="number" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Asignar</button>
+</form>
