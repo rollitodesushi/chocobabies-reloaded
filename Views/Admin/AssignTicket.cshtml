@@ -3,7 +3,7 @@
     ViewBag.Title = "Asignar Ticket";
 }
 <h2>Asignar tiquete a participante #@ViewBag.RifaID</h2>
-<p>Valor del numero: $@ViewBag.PrecioTiquete</p>
+<p>Valor del numero: @ViewBag.PrecioTiquete</p>
 <form asp-action="AssignTicket" method="post">
     <input type="hidden" name="rifaID" value="@ViewBag.RifaID" />
     <div class="form-group">
@@ -24,3 +24,7 @@
     </div>
     <button type="submit" class="btn btn-primary">Asignar</button>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
