@@ -26,6 +26,10 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.SupportedUICultures = supportedCultures;
 });
 
+// Configurar base de datos
+builder.Services.AddDbContext<RifaDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? Environment.GetEnvironmentVariable("DATABASE_URL")));
+
 // Convertir DATABASE_URL de URI a formato clave-valor
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (builder.Configuration["DATABASE_URL"] is string databaseUrl && !string.IsNullOrEmpty(databaseUrl))
@@ -35,9 +39,7 @@ if (builder.Configuration["DATABASE_URL"] is string databaseUrl && !string.IsNul
     connectionString = $"Host={uri.Host};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};Port={uri.Port};SSL Mode=Require";
 }
 
-// Configurar base de datos
-builder.Services.AddDbContext<RifaDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 //builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<RifaDbContext>();
 
