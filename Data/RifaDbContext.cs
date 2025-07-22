@@ -25,6 +25,8 @@ namespace ChocobabiesReloaded.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<DataProtectionKey>().ToTable("DataProtectionKeys");
+
             // Configure Participant-User relationship as optional
             modelBuilder.Entity<Participante>()
                 .HasOne(p => p.user)
