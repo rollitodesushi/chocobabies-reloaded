@@ -34,8 +34,10 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 builder.Services.AddDbContext<RifaDbContext>(options =>
     options.UseNpgsql(connectionString));*/
 
+var connectionString = "postgresql://admin:TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu@dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com/chocobabies_h1i5;SSL Mode=Require";
+Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<RifaDbContext>(options =>
-    options.UseNpgsql("postgresql://admin:TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu@dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com/chocobabies_h1i5"));
+    options.UseNpgsql(connectionString));
 
 
 
