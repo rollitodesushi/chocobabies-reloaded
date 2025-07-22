@@ -27,17 +27,11 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 // Configurar base de datos
+// *** Changed: Use DATABASE_URL directly with local fallback for chocobabies ***
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ??
+    "Host=localhost;Database=chocobabies;Username=postgres;Password=Jouikb_1996;Port=5432;SSL Mode=Disable";
 builder.Services.AddDbContext<RifaDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? Environment.GetEnvironmentVariable("DATABASE_URL")));
-
-// Convertir DATABASE_URL de URI a formato clave-valor
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (builder.Configuration["DATABASE_URL"] is string databaseUrl && !string.IsNullOrEmpty(databaseUrl))
-{
-    var uri = new Uri(databaseUrl);
-    var userInfo = uri.UserInfo.Split(':');
-    connectionString = $"Host={uri.Host};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};Port={uri.Port};SSL Mode=Require";
-}
+    options.UseNpgsql(connectionString));
 
 
 

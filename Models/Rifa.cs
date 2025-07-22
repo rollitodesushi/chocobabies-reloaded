@@ -10,7 +10,8 @@
         public DateTime fechaCierreSorteo { get; set; }
         public bool vigente { get; set; }
         public decimal precioTiquete { get; set; }
-        
 
+        // *** Added: CantidadNumeros for ticket count ***
+        public int? cantidadNumeros { get; set; }
     }
 }
