@@ -13,7 +13,7 @@ using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar localizaci�n para espa�ol (Colombia)
+// Configurar localización para español (Colombia)
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddControllersWithViews()
     .AddViewLocalization()
@@ -27,21 +27,11 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 // Configurar base de datos
-// *** Changed: Use DATABASE_URL directly with local fallback for chocobabies ***
-
-/*var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ??
-    "Host=localhost;Database=chocobabies;Username=postgres;Password=Jouikb_1996;Port=5432;SSL Mode=Disable";
-builder.Services.AddDbContext<RifaDbContext>(options =>
-    options.UseNpgsql(connectionString));*/
-
+// *** Changed: Hardcode correct Render DATABASE_URL with SSL and logging ***
 var connectionString = "postgresql://admin:TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu@dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com/chocobabies_h1i5;SSL Mode=Require";
 Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<RifaDbContext>(options =>
     options.UseNpgsql(connectionString));
-
-
-
-//builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<RifaDbContext>();
 
 // Configurar Identity con clase User personalizada
 builder.Services.AddIdentity<User, IdentityRole<int>>()
@@ -51,7 +41,7 @@ builder.Services.AddIdentity<User, IdentityRole<int>>()
 // Registrar IEmailSender
 builder.Services.AddSingleton<IEmailSender, NullEmailSender>();
 
-// Configurar redirecci�n de login
+// Configurar redirección de login
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
@@ -76,7 +66,7 @@ builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddRazorPages();
 
-// Configurar el puerto solo en producci�n
+// Configurar el puerto solo en producción
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
@@ -86,6 +76,7 @@ if (!builder.Environment.IsDevelopment())
 var app = builder.Build();
 
 // Configurar pipeline HTTP
+// *** Changed: Disable UseHttpsRedirection in production ***
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -97,10 +88,9 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Configurar localizaci�n en el pipeline
+// Configurar localización en el pipeline
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
     DefaultRequestCulture = new RequestCulture("es-CO"),
@@ -118,5 +108,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 app.MapHub<RifaHub>("/rifaHub");
-
 app.Run();
