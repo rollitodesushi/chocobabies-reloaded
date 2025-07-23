@@ -33,8 +33,10 @@ Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<RifaDbContext>(options =>
     options.UseNpgsql(connectionString));*/
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "Host=dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com;Database=chocobabies_h1i5;Username=admin;Password=TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu;Port=5432;SSL Mode=Require";
-//Console.WriteLine($"Connection String: {connectionString}");
+var connectionString = builder.Environment.IsDevelopment()
+    ? "Host=localhost;Database=chocobabies;Username=postgres;Password=Jouikb_1996"
+    : "Host=dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com;Database=chocobabies_h1i5;Username=admin;Password=TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu;Port=5432;SSL Mode=Require";
+Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<RifaDbContext>(options =>
     options.UseNpgsql(connectionString));
 
