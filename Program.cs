@@ -27,9 +27,14 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 // Configurar base de datos
-// *** Changed: Hardcode correct Render DATABASE_URL with SSL and logging ***
-var connectionString = "Host=dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com;Database=chocobabies_h1i5;Username=admin;Password=TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu;Port=5432;SSL Mode=Require";
+// *** Changed: Hardcode correct Render DATABASE_URL with SSL and logging ***  FUNCIONA ACTUALMENTE
+/*var connectionString = "Host=dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com;Database=chocobabies_h1i5;Username=admin;Password=TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu;Port=5432;SSL Mode=Require";
 Console.WriteLine($"Connection String: {connectionString}");
+builder.Services.AddDbContext<RifaDbContext>(options =>
+    options.UseNpgsql(connectionString));*/
+
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "Host=dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com;Database=chocobabies_h1i5;Username=admin;Password=TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu;Port=5432;SSL Mode=Require";
+//Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<RifaDbContext>(options =>
     options.UseNpgsql(connectionString));
 
