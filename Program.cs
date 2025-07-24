@@ -27,18 +27,31 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 // Configurar base de datos
-// *** Changed: Hardcode correct Render DATABASE_URL with SSL and logging ***  FUNCIONA ACTUALMENTE
-/*var connectionString = "Host=dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com;Database=chocobabies_h1i5;Username=admin;Password=TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu;Port=5432;SSL Mode=Require";
-Console.WriteLine($"Connection String: {connectionString}");
-builder.Services.AddDbContext<RifaDbContext>(options =>
-    options.UseNpgsql(connectionString));*/
+string connectionString = null;
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+else // Production (Render)
+{
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        var databaseUri = new Uri(databaseUrl);
+        var userInfo = databaseUri.UserInfo.Split(':');
+        connectionString = $"Host={databaseUri.Host};Port=5432;Database={databaseUri.Segments.Last().Trim('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    }
+}
 
-var connectionString = builder.Environment.IsDevelopment()
-    ? "Host=localhost;Database=chocobabies;Username=postgres;Password=Jouikb_1996"
-    : "Host=dpg-d1vkklumcj7s73ffglh0-a.oregon-postgres.render.com;Database=chocobabies_h1i5;Username=admin;Password=TD70XHZmA1TWWk5ApBmdEcF6reNfC7Lu;Port=5432;SSL Mode=Require";
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("No se pudo obtener el connection string para el entorno actual.");
+}
+
 Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<RifaDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString)
+           .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())); // Opcional: logging para depuración
 
 // Configurar Identity con clase User personalizada
 builder.Services.AddIdentity<User, IdentityRole<int>>()
@@ -83,7 +96,6 @@ if (!builder.Environment.IsDevelopment())
 var app = builder.Build();
 
 // Configurar pipeline HTTP
-// *** Changed: Disable UseHttpsRedirection in production ***
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -115,5 +127,26 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 app.MapHub<RifaHub>("/rifaHub");
+
+// Asegurar creación de roles y asignación inicial (opcional, descomentar si necesitas)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+
+    // Crear rol "Admin" si no existe
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole<int>("Admin"));
+    }
+
+    // Asignar rol "Admin" al primer usuario registrado (ajústalos con el email usado)
+    var user = await userManager.FindByEmailAsync("admin@chocobabies.com");
+    if (user != null && !await userManager.IsInRoleAsync(user, "Admin"))
+    {
+        await userManager.AddToRoleAsync(user, "Admin");
+    }
+}
 
 app.Run();
