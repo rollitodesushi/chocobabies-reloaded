@@ -30,7 +30,7 @@ namespace ChocobabiesReloaded.Controllers
             }
 
             ViewBag.RifaID = rifaID;
-            ViewBag.PrecioTiquete = rifa.precioTiquete.ToString("C", CultureInfo.GetCultureInfo("es-CO"));
+            ViewBag.PrecioTiquete = rifa.precioPorNumero.ToString("C", CultureInfo.GetCultureInfo("es-CO"));
             return View();
         }
 
@@ -47,7 +47,7 @@ namespace ChocobabiesReloaded.Controllers
                     return NotFound("Rifa no encontrada o no está activa.");
                 }
                 ViewBag.RifaID = rifaID;
-                ViewBag.PrecioTiquete = rifa.precioTiquete.ToString("C", CultureInfo.GetCultureInfo("es-CO"));
+                ViewBag.PrecioTiquete = rifa.precioPorNumero.ToString("C", CultureInfo.GetCultureInfo("es-CO"));
                 return View();
             }
 
@@ -64,7 +64,7 @@ namespace ChocobabiesReloaded.Controllers
             {
                 ModelState.AddModelError("", "El número de tiquete ya está asignado.");
                 ViewBag.RifaID = rifaID;
-                ViewBag.PrecioTiquete = rifa.precioTiquete.ToString("C", CultureInfo.GetCultureInfo("es-CO"));
+                ViewBag.PrecioTiquete = rifa.precioPorNumero.ToString("C", CultureInfo.GetCultureInfo("es-CO"));
                 return View();
             }
 

@@ -17,7 +17,7 @@ namespace ChocobabiesReloaded.Models
 
         public DateTime fechaCompra { get; set; }
 
-
+        public bool estaComprado { get; set; }
 
     }
 }
