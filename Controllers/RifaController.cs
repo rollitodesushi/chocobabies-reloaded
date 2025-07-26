@@ -57,13 +57,13 @@ public class RifaController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AsignarNumero(int rifaId, int numero, string participanteEmail, string nombre = null, string telefono = null)
+    public async Task<IActionResult> AsignarNumero(int rifaID, int numeroTiquete, string participanteEmail, string nombre = null, string telefono = null)
     {
         var rifa = await _context.rifas.Include(r => r.tiquetes)
-            .FirstOrDefaultAsync(r => r.id == rifaId);
+            .FirstOrDefaultAsync(r => r.id == rifaID);
         if (rifa == null) return NotFound();
 
-        var tiquete = rifa.tiquetes.FirstOrDefault(t => t.numeroTiquete == numero);
+        var tiquete = rifa.tiquetes.FirstOrDefault(t => t.numeroTiquete == numeroTiquete);
         if (tiquete == null || tiquete.estaComprado) return Json(new { success = false });
 
         Participante participante = null;

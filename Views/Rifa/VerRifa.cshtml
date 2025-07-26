@@ -1,0 +1,61 @@
+﻿@model Rifa
+
+@{
+    ViewData["Title"] = $"{Model.nombreSorteo} - Tablero de Números";
+}
+
+<div class="container mx-auto p-4 max-w-4xl">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">@Model.nombreSorteo</h1>
+    <div id="bingoGrid" class="bingo-grid grid grid-cols-10 sm:grid-cols-10 md:grid-cols-10 gap-2"></div>
+    <div class="mt-4 text-center">
+        <span class="bg-green-500 text-white px-2 py-1 rounded mr-2">Disponible</span>
+        <span class="bg-red-500 text-white px-2 py-1 rounded">Comprado</span>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('bingoGrid');
+            const tiquetes = @Html.Raw(Json.Serialize(Model.tiquetes.Select(t => new { t.numeroTiquete, t.estaComprado, t.participanteId })));
+
+            tiquetes.forEach(t => {
+                const div = document.createElement('div');
+                div.className = `bingo-number aspect-square flex items-center justify-center text-center rounded-lg cursor-pointer transition-all duration-200 ${t.estaComprado ? 'bg-red-500 text-white opacity-80 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600 hover:scale-105'}`;
+                div.textContent = t.numeroTiquete.toString().padStart(2, '0');
+                div.dataset.number = t.numeroTiquete;
+                if (!t.estaComprado) {
+                    div.addEventListener('click', async () => {
+                        const email = prompt('Ingrese el email del participante (deje en blanco si no tiene):');
+                        if (email === null) return; // Cancelar el prompt
+                        let nombre = null, telefono = null;
+                        if (!email) {
+                            nombre = prompt('Ingrese el nombre del participante:');
+                            telefono = prompt('Ingrese el número telefónico del participante:');
+                            if (!nombre || !telefono) {
+                                alert('Debe proporcionar nombre y teléfono si no hay email.');
+                                return;
+                            }
+                        }
+                        const response = await fetch('/Rifa/AsignarNumero', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                rifaID: @Model.id,
+                                numeroTiquete: t.numeroTiquete,
+                                participanteEmail: email || '',
+                                nombre: nombre || '',
+                                telefono: telefono || ''
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) location.reload();
+                        else alert(data.message || 'Error al asignar el número.');
+                    });
+                }
+                grid.appendChild(div);
+            });
+        });
+    </script>
+}

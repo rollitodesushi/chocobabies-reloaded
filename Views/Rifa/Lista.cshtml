@@ -1,0 +1,32 @@
+﻿@model List<Rifa>
+
+@{
+    ViewData["Title"] = "Mis Rifas";
+}
+
+<div class="container mx-auto p-4 max-w-4xl">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 text-center">Mis Rifas</h1>
+    @if (Model.Any())
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            @foreach (var rifa in Model)
+            {
+                <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                    <h3 class="text-lg font-semibold text-gray-800">@rifa.nombreSorteo</h3>
+                    <p class="text-sm text-gray-600">Precio por número: $@rifa.precioPorNumero.ToString("N0") CRC</p>
+                    <p class="text-sm text-gray-600">Inicio: @rifa.fechaCreacion.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="text-sm text-gray-600">Cierre: @rifa.fechaCierreSorteo.ToString("dd/MM/yyyy")</p>
+                    <a asp-action="VerRifa" asp-route-id="@rifa.id" class="mt-2 inline-block bg-indigo-600 text-white py-1 px-3 rounded-md hover:bg-indigo-700">Ver Detalles</a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center text-gray-500">No hay rifas creadas aún.</p>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tailwindcss.com"></script>
+}

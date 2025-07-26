@@ -1,22 +1,23 @@
-html {
-  font-size: 14px;
+.bingo-grid {
+    max-width: 100%;
+}
+
+.bingo-number {
+    min-width: 40px;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 640px) {
+    .bingo-number {
+        min-width: 50px;
+        font-size: 16px;
+    }
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  margin-bottom: 60px;
+    .bingo-number {
+        min-width: 60px;
+        font-size: 18px;
+    }
 }
