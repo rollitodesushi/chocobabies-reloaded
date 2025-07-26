@@ -107,7 +107,7 @@ else
     app.UseHsts();
 }
 
-app.UseStaticFiles();
+
 
 // Configurar localización en el pipeline
 app.UseRequestLocalization(new RequestLocalizationOptions
@@ -117,7 +117,10 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = new List<CultureInfo> { new CultureInfo("es-CO") }
 });
 
+
+app.UseStaticFiles(); // Asegúrate de que esta línea esté presente y no esté comentada
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseIpRateLimiting();
