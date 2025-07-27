@@ -38,17 +38,19 @@
                                 return;
                             }
                         }
-                        const response = await fetch('/Rifa/AsignarNumero', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                rifaID: @Model.id,
-                                numeroTiquete: t.numeroTiquete,
-                                participanteEmail: email || '',
-                                nombre: nombre || '',
-                                telefono: telefono || ''
-                            })
-                        });
+                                const response = await fetch('@Url.Action("AsignarNumero", "Rifa")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rifaID: @Model.id,
+                numeroTiquete: t.numeroTiquete,
+                participanteEmail: email || '',
+                nombre: nombre || '',
+                telefono: telefono || ''
+            })
+        });
                         const data = await response.json();
                         if (data.success) location.reload();
                         else alert(data.message || 'Error al asignar el número.');

@@ -1,5 +1,6 @@
 ﻿using ChocobabiesReloaded.Data;
 using ChocobabiesReloaded.Models;
+using ChocobabiesReloaded.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -66,32 +67,32 @@ public class RifaController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AsignarNumero(int rifaID, int numeroTiquete, string participanteEmail, string nombre = null, string telefono = null)
+    public async Task<IActionResult> AsignarNumero([FromBody] AsignarNumeroRequest request)
     {
         var rifa = await _context.rifas.Include(r => r.tiquetes)
-            .FirstOrDefaultAsync(r => r.id == rifaID);
+            .FirstOrDefaultAsync(r => r.id == request.rifaID);
         if (rifa == null) return NotFound();
 
-        var tiquete = rifa.tiquetes.FirstOrDefault(t => t.numeroTiquete == numeroTiquete);
+        var tiquete = rifa.tiquetes.FirstOrDefault(t => t.numeroTiquete == request.numeroTiquete);
         if (tiquete == null || tiquete.estaComprado) return Json(new { success = false });
 
         Participante participante = null;
-        if (!string.IsNullOrEmpty(participanteEmail))
-        {
-            // Buscar primero por email del participante
-            participante = await _context.participantes
-                .FirstOrDefaultAsync(p => p.email == participanteEmail);
 
-            if (participante == null && participanteEmail != null)
+        if (!string.IsNullOrEmpty(request.participanteEmail))
+        {
+            participante = await _context.participantes
+                .FirstOrDefaultAsync(p => p.email == request.participanteEmail);
+
+            if (participante == null)
             {
-                // Buscar participantes con user y comparar email asíncronamente
                 var participantesConUser = await _context.participantes
                     .Where(p => p.user != null)
                     .ToListAsync();
+
                 foreach (var p in participantesConUser)
                 {
                     var userEmail = await _userManager.GetEmailAsync(p.user);
-                    if (userEmail == participanteEmail)
+                    if (userEmail == request.participanteEmail)
                     {
                         participante = p;
                         break;
@@ -100,18 +101,20 @@ public class RifaController : Controller
             }
         }
 
-        if (participante == null && (!string.IsNullOrEmpty(nombre) || !string.IsNullOrEmpty(telefono)))
+        if (participante == null && (!string.IsNullOrEmpty(request.nombre) || !string.IsNullOrEmpty(request.telefono)))
         {
-            // Buscar o crear participante por nombre y/o teléfono
             participante = await _context.participantes
-                .FirstOrDefaultAsync(p => (string.IsNullOrEmpty(nombre) || p.nombre == nombre) && (string.IsNullOrEmpty(telefono) || p.numeroTelefonico == telefono));
+                .FirstOrDefaultAsync(p =>
+                    (string.IsNullOrEmpty(request.nombre) || p.nombre == request.nombre) &&
+                    (string.IsNullOrEmpty(request.telefono) || p.numeroTelefonico == request.telefono));
+
             if (participante == null)
             {
                 participante = new Participante
                 {
-                    nombre = nombre ?? "Participante Anónimo",
-                    numeroTelefonico = telefono ?? "",
-                    email = participanteEmail // Usar email si se proporcionó
+                    nombre = request.nombre ?? "Participante Anónimo",
+                    numeroTelefonico = request.telefono ?? "",
+                    email = request.participanteEmail
                 };
                 _context.participantes.Add(participante);
                 await _context.SaveChangesAsync();
@@ -125,7 +128,8 @@ public class RifaController : Controller
 
         tiquete.participanteId = participante.id;
         tiquete.estaComprado = true;
-        tiquete.fechaCompra = DateTime.Now;
+        tiquete.fechaCompra = DateTime.UtcNow;
+
         await _context.SaveChangesAsync();
         return Json(new { success = true });
     }
