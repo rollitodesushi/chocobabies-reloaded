@@ -9,11 +9,9 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar localización para español (Colombia)
+// Configurar localización
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddControllersWithViews()
     .AddViewLocalization()
@@ -27,44 +25,24 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 // Configurar base de datos
-string connectionString = null;
-if (builder.Environment.IsDevelopment())
-{
-    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-}
-else // Production (Render)
-{
-    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-    if (!string.IsNullOrEmpty(databaseUrl))
-    {
-        var databaseUri = new Uri(databaseUrl);
-        var userInfo = databaseUri.UserInfo.Split(':');
-        connectionString = $"Host={databaseUri.Host};Port=5432;Database={databaseUri.Segments.Last().Trim('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
-    }
-}
-
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new InvalidOperationException("No se pudo obtener el connection string para el entorno actual.");
-}
-
+string connectionString = builder.Environment.IsDevelopment()
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : Environment.GetEnvironmentVariable("DATABASE_URL") is string databaseUrl
+        ? $"Host={new Uri(databaseUrl).Host};Port=5432;Database={new Uri(databaseUrl).Segments.Last().Trim('/')};Username={new Uri(databaseUrl).UserInfo.Split(':')[0]};Password={new Uri(databaseUrl).UserInfo.Split(':')[1]};SSL Mode=Require;Trust Server Certificate=true"
+        : throw new InvalidOperationException("No se pudo obtener el connection string.");
 Console.WriteLine($"Connection String: {connectionString}");
 builder.Services.AddDbContext<RifaDbContext>(options =>
     options.UseNpgsql(connectionString)
-           .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())); // Opcional: logging para depuración
+           .EnableSensitiveDataLogging(builder.Environment.IsDevelopment()));
 
-// Configurar Identity con clase User personalizada
+// Configurar Identity
 builder.Services.AddIdentity<User, IdentityRole<int>>()
     .AddEntityFrameworkStores<RifaDbContext>()
     .AddDefaultTokenProviders();
-
-// Registrar IEmailSender
-builder.Services.AddSingleton<IEmailSender, NullEmailSender>();
-
-// Configurar redirección de login
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
@@ -73,20 +51,19 @@ builder.Services.AddDataProtection()
     .PersistKeysToDbContext<RifaDbContext>()
     .SetApplicationName("ChocobabiesReloaded");
 
-// Configurar servicios adicionales
+// Servicios adicionales
+builder.Services.AddSingleton<IEmailSender, NullEmailSender>();
 builder.Services.AddSignalR();
 builder.Services.AddMemoryCache();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddResponseCaching();
-
-// Configurar Rate Limiting
 builder.Services.AddInMemoryRateLimiting();
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddRazorPages();
 
-// Configurar el puerto solo en producción
+// Puerto para producción
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
@@ -95,11 +72,10 @@ if (!builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
-// Configurar pipeline HTTP
+// Pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseHttpsRedirection();
 }
 else
 {
@@ -107,9 +83,6 @@ else
     app.UseHsts();
 }
 
-
-
-// Configurar localización en el pipeline
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
     DefaultRequestCulture = new RequestCulture("es-CO"),
@@ -117,36 +90,40 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = new List<CultureInfo> { new CultureInfo("es-CO") }
 });
 
-
-app.UseStaticFiles(); // Asegúrate de que esta línea esté presente y no esté comentada
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseIpRateLimiting();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 app.MapHub<RifaHub>("/rifaHub");
 
-// Asegurar creación de roles y asignación inicial (opcional, descomentar si necesitas)
+// Seed inicial
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
     var userManager = services.GetRequiredService<UserManager<User>>();
 
-    // Crear rol "Admin" si no existe
     if (!await roleManager.RoleExistsAsync("Admin"))
     {
         await roleManager.CreateAsync(new IdentityRole<int>("Admin"));
     }
 
-    // Asignar rol "Admin" al primer usuario registrado (ajústalos con el email usado)
     var user = await userManager.FindByEmailAsync("admin@chocobabies.com");
-    if (user != null && !await userManager.IsInRoleAsync(user, "Admin"))
+    if (user == null)
+    {
+        user = new User { UserName = "admin@chocobabies.com", Email = "admin@chocobabies.com", FullName = "Admin User", EmailConfirmed = true };
+        var result = await userManager.CreateAsync(user, "Admin@123");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Admin");
+        }
+    }
+    else if (!await userManager.IsInRoleAsync(user, "Admin"))
     {
         await userManager.AddToRoleAsync(user, "Admin");
     }

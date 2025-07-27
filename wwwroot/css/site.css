@@ -1,22 +1,22 @@
-.bingo-grid {
+#bingoGrid .bingo-grid {
     max-width: 100%;
 }
 
-.bingo-number {
+#bingoGrid .bingo-number {
     min-width: 40px;
     font-size: 14px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 @media (min-width: 640px) {
-    .bingo-number {
+    #bingoGrid .bingo-number {
         min-width: 50px;
         font-size: 16px;
     }
 }
 
 @media (min-width: 768px) {
-    .bingo-number {
+    #bingoGrid .bingo-number {
         min-width: 60px;
         font-size: 18px;
     }

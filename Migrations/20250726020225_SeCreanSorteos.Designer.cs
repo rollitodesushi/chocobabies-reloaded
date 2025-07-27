@@ -3,6 +3,7 @@ using System;
 using ChocobabiesReloaded.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChocobabiesReloaded.Migrations
 {
     [DbContext(typeof(RifaDbContext))]
-    partial class RifaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250726020225_SeCreanSorteos")]
+    partial class SeCreanSorteos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,7 +103,7 @@ namespace ChocobabiesReloaded.Migrations
                     b.Property<int>("numeroTiquete")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("participanteId")
+                    b.Property<int>("participanteId")
                         .HasColumnType("integer");
 
                     b.Property<int>("rifaID")
@@ -351,7 +354,9 @@ namespace ChocobabiesReloaded.Migrations
                 {
                     b.HasOne("ChocobabiesReloaded.Models.Participante", "participante")
                         .WithMany()
-                        .HasForeignKey("participanteId");
+                        .HasForeignKey("participanteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ChocobabiesReloaded.Models.Rifa", "rifa")
                         .WithMany("tiquetes")

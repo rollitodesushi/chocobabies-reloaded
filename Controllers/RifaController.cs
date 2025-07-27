@@ -25,26 +25,35 @@ public class RifaController : Controller
     [HttpPost]
     public async Task<IActionResult> Crear(Rifa rifa)
     {
-        if (ModelState.IsValid)
+
+        ModelState.Remove("tiquetes");
+        if (!ModelState.IsValid)
         {
-            rifa.vigente = true; // Set default value
-            _context.rifas.Add(rifa);
-            await _context.SaveChangesAsync();
-
-            // Generar tiquetes según cantidadNumeros
-            var tiquetes = Enumerable.Range(0, rifa.cantidadNumeros).Select(n => new Tiquete
+            // Mostramos errores por consola para depurar
+            var allErrors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in allErrors)
             {
-                rifaID = rifa.id,
-                numeroTiquete = n,
-                estaComprado = false,
-                fechaCompra = DateTime.MinValue
-            }).ToList();
-            _context.tiquetes.AddRange(tiquetes);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("VerRifa", new { id = rifa.id });
+                Console.WriteLine("❌ ERROR: " + error.ErrorMessage);
+            }
+            return View(rifa);
         }
-        return View(rifa);
+
+        rifa.vigente = true;
+        rifa.fechaCierreSorteo = DateTime.SpecifyKind(rifa.fechaCierreSorteo, DateTimeKind.Utc);
+        _context.rifas.Add(rifa);
+        await _context.SaveChangesAsync();
+
+        var tiquetes = Enumerable.Range(0, rifa.cantidadNumeros).Select(n => new Tiquete
+        {
+            rifaID = rifa.id,
+            numeroTiquete = n,
+            estaComprado = false,
+            fechaCompra = DateTime.MinValue
+        }).ToList();
+        _context.tiquetes.AddRange(tiquetes);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("VerRifa", new { id = rifa.id });
     }
 
     public async Task<IActionResult> VerRifa(int id)

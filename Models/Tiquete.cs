@@ -9,7 +9,7 @@ namespace ChocobabiesReloaded.Models
         public int rifaID { get; set; }
         public Rifa rifa { get; set; }
 
-        public int participanteId { get; set; }
+        public int? participanteId { get; set; }
 
         public Participante participante { get; set; }
 

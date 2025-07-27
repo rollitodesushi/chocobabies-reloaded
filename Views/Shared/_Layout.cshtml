@@ -4,28 +4,35 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ChocobabiesReloaded</title>
-    <link rel="stylesheet" href="https://cdn.tailwindcss.com/3.4.3"/>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="bg-gray-100">
     <header class="bg-indigo-600 text-white p-4">
         <nav class="container mx-auto flex justify-between items-center">
             <div class="text-xl font-bold">Chocobabies</div>
+
+            <!-- Menú de escritorio -->
             <div class="space-x-4 hidden md:block">
                 <a asp-area="" asp-controller="Home" asp-action="Index" class="hover:text-indigo-200">Inicio</a>
-                <a asp-area="" asp-controller="Rifa" asp-action="Crear" class="hover:text-indigo-200">Crear Rifa</a>
-                <a asp-area="" asp-controller="Rifa" asp-action="Lista" class="hover:text-indigo-200">Mis Rifas</a>
+
                 @if (User.Identity?.IsAuthenticated ?? false)
                 {
-                    <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post" class="inline">
+                    <a asp-area="" asp-controller="Rifa" asp-action="Crear" class="hover:text-indigo-200">Crear Rifa</a>
+                    <a asp-area="" asp-controller="Rifa" asp-action="Lista" class="hover:text-indigo-200">Mis Rifas</a>
+
+                    <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="inline">
                         <button type="submit" class="hover:text-indigo-200">Salir</button>
                     </form>
                 }
                 else
                 {
-                    <a asp-area="Identity" asp-controller="Account" asp-action="Login" class="hover:text-indigo-200">Iniciar Sesión</a>
+                    <a asp-area="Identity" asp-page="/Account/Login" class="hover:text-indigo-200">Iniciar Sesión</a>
+                    <a asp-area="Identity" asp-page="/Account/Register" class="hover:text-indigo-200">Registrarse</a>
                 }
             </div>
+
+            <!-- Botón hamburguesa móvil -->
             <div class="md:hidden">
                 <button id="menuButton" class="focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,19 +41,24 @@
                 </button>
             </div>
         </nav>
+
+        <!-- Menú desplegable móvil -->
         <div id="mobileMenu" class="md:hidden bg-indigo-700 p-4 space-y-2 hidden">
             <a asp-area="" asp-controller="Home" asp-action="Index" class="block hover:text-indigo-200">Inicio</a>
-            <a asp-area="" asp-controller="Rifa" asp-action="Crear" class="block hover:text-indigo-200">Crear Rifa</a>
-            <a asp-area="" asp-controller="Rifa" asp-action="Lista" class="block hover:text-indigo-200">Mis Rifas</a>
+
             @if (User.Identity?.IsAuthenticated ?? false)
             {
-                <form asp-area="Identity" asp-controller="Account" asp-action="Logout" method="post" class="block">
+                <a asp-area="" asp-controller="Rifa" asp-action="Crear" class="block hover:text-indigo-200">Crear Rifa</a>
+                <a asp-area="" asp-controller="Rifa" asp-action="Lista" class="block hover:text-indigo-200">Mis Rifas</a>
+
+                <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="block">
                     <button type="submit" class="hover:text-indigo-200">Salir</button>
                 </form>
             }
             else
             {
-                <a asp-area="Identity" asp-controller="Account" asp-action="Login" class="block hover:text-indigo-200">Iniciar Sesión</a>
+                <a asp-area="Identity" asp-page="/Account/Login" class="block hover:text-indigo-200">Iniciar Sesión</a>
+                <a asp-area="Identity" asp-page="/Account/Register" class="block hover:text-indigo-200">Registrarse</a>
             }
         </div>
     </header>

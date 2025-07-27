@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
 
 namespace ChocobabiesReloaded.Models
 {
@@ -9,10 +10,12 @@ namespace ChocobabiesReloaded.Models
 
         [Required]
         public string nombreSorteo { get; set; }
-        public DateTime fechaCreacion { get; set; } = DateTime.Now;
+       
+        public DateTime fechaCreacion { get; set; } = DateTime.UtcNow;
 
         [Required]
         [DataType(DataType.Date)]
+        [CustomValidation(typeof(Rifa), nameof(ValidarFechaCierre))]
         public DateTime fechaCierreSorteo { get; set; }
 
         
@@ -28,7 +31,15 @@ namespace ChocobabiesReloaded.Models
         [Required]
         public int cantidadNumeros { get; set; }
 
+        [BindNever]
         public ICollection<Tiquete> tiquetes { get; set; }
+
+        public static ValidationResult ValidarFechaCierre(DateTime fecha, ValidationContext context)
+        {
+            return fecha.Date < DateTime.Now.Date
+                ? new ValidationResult("La fecha de cierre debe ser hoy o una fecha futura.")
+                : ValidationResult.Success;
+        }
 
 
     }
