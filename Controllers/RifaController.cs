@@ -24,13 +24,27 @@ public class RifaController : Controller
     }
 
     [HttpPost]
+    [HttpPost]
     public async Task<IActionResult> Crear(Rifa rifa)
     {
-
         ModelState.Remove("tiquetes");
+
+        // Zona horaria de Costa Rica
+        var zonaCR = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
+
+        // Fecha actual en Costa Rica
+        var ahoraCR = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zonaCR);
+
+        // Validar que la fecha de cierre no sea en el pasado (respecto a CR)
+        var fechaCierreLocal = DateTime.SpecifyKind(rifa.fechaCierreSorteo, DateTimeKind.Unspecified);
+        if (fechaCierreLocal < ahoraCR)
+        {
+            ModelState.AddModelError("fechaCierreSorteo", "La fecha de cierre no puede ser anterior a la fecha actual en Costa Rica.");
+            return View(rifa);
+        }
+
         if (!ModelState.IsValid)
         {
-            // Mostramos errores por consola para depurar
             var allErrors = ModelState.Values.SelectMany(v => v.Errors);
             foreach (var error in allErrors)
             {
@@ -39,8 +53,11 @@ public class RifaController : Controller
             return View(rifa);
         }
 
+        // Convertir ambas fechas a UTC antes de guardar
+        rifa.fechaCreacion = DateTime.UtcNow;
+        rifa.fechaCierreSorteo = TimeZoneInfo.ConvertTimeToUtc(fechaCierreLocal, zonaCR);
         rifa.vigente = true;
-        rifa.fechaCierreSorteo = DateTime.SpecifyKind(rifa.fechaCierreSorteo, DateTimeKind.Utc);
+
         _context.rifas.Add(rifa);
         await _context.SaveChangesAsync();
 
@@ -51,11 +68,13 @@ public class RifaController : Controller
             estaComprado = false,
             fechaCompra = DateTime.MinValue
         }).ToList();
+
         _context.tiquetes.AddRange(tiquetes);
         await _context.SaveChangesAsync();
 
         return RedirectToAction("VerRifa", new { id = rifa.id });
     }
+
 
     public async Task<IActionResult> VerRifa(int id)
     {

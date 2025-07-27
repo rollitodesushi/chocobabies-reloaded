@@ -14,8 +14,14 @@
                 <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <h3 class="text-lg font-semibold text-gray-800">@rifa.nombreSorteo</h3>
                     <p class="text-sm text-gray-600">Precio por número: @rifa.precioPorNumero.ToString("C0", System.Globalization.CultureInfo.CurrentCulture)</p>
-                    <p class="text-sm text-gray-600">Inicio: @rifa.fechaCreacion.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p class="text-sm text-gray-600">Cierre: @rifa.fechaCierreSorteo.ToString("dd/MM/yyyy")</p>
+                    @{
+                    var zonaCR = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
+                    var fechaInicioCR = TimeZoneInfo.ConvertTimeFromUtc(rifa.fechaCreacion.ToUniversalTime(), zonaCR);
+                    var fechaCierreCR = TimeZoneInfo.ConvertTimeFromUtc(rifa.fechaCierreSorteo.ToUniversalTime(), zonaCR);
+                    }
+                    <p class="text-sm text-gray-600">Inicio: @fechaInicioCR.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="text-sm text-gray-600">Cierre: @fechaCierreCR.ToString("dd/MM/yyyy")</p>
+
                     <a asp-action="VerRifa" asp-route-id="@rifa.id" class="mt-2 inline-block bg-indigo-600 text-white py-1 px-3 rounded-md hover:bg-indigo-700">Ver Detalles</a>
                 </div>
             }

@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Crear Nueva Rifa";
+
+    // Convertir fecha actual a zona horaria de Costa Rica
+    var zonaCostaRica = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
+    var hoyCR = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zonaCostaRica).ToString("yyyy-MM-dd");
 }
 
 <div class="container mx-auto p-4 max-w-md sm:max-w-lg md:max-w-xl">
@@ -18,7 +22,10 @@
 
         <div class="mb-4">
             <label asp-for="precioPorNumero" class="block text-sm font-medium text-gray-700">Precio por Número (CRC)</label>
-            <input asp-for="precioPorNumero" type="number" step="100" min="100" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+            <input asp-for="precioPorNumero"
+                   type="number"
+                   min="100"
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
             <span asp-validation-for="precioPorNumero" class="text-red-500 text-xs"></span>
         </div>
 
@@ -31,9 +38,9 @@
             <label asp-for="fechaCierreSorteo" class="block text-sm font-medium text-gray-700">Fecha de Cierre</label>
             <input asp-for="fechaCierreSorteo"
                    type="date"
-                   min="@DateTime.UtcNow.ToString("yyyy-MM-dd")"
-                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
-
+                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                   min="@hoyCR"
+                   value="@hoyCR" />
             <span asp-validation-for="fechaCierreSorteo" class="text-red-500 text-xs"></span>
         </div>
 
