@@ -14,50 +14,150 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const grid = document.getElementById('bingoGrid');
-            const tiquetes = @Html.Raw(Json.Serialize(Model.tiquetes.Select(t => new { t.numeroTiquete, t.estaComprado, t.participanteId })));
+  <script src="https://cdn.tailwindcss.com"></script>
 
-            tiquetes.forEach(t => {
-                const div = document.createElement('div');
-                div.className = `bingo-number aspect-square flex items-center justify-center text-center rounded-lg cursor-pointer transition-all duration-200 ${t.estaComprado ? 'bg-red-500 text-white opacity-80 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600 hover:scale-105'}`;
-                div.textContent = t.numeroTiquete.toString().padStart(2, '0');
-                div.dataset.number = t.numeroTiquete;
-                if (!t.estaComprado) {
-                    div.addEventListener('click', async () => {
-                        const email = prompt('Ingrese el email del participante (deje en blanco si no tiene):');
-                        if (email === null) return; // Cancelar el prompt
-                        let nombre = null, telefono = null;
-                        if (!email) {
-                            nombre = prompt('Ingrese el nombre del participante:');
-                            telefono = prompt('Ingrese el número telefónico del participante:');
-                            if (!nombre || !telefono) {
-                                alert('Debe proporcionar nombre y teléfono si no hay email.');
-                                return;
-                            }
-                        }
-                                const response = await fetch('@Url.Action("AsignarNumero", "Rifa")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                rifaID: @Model.id,
-                numeroTiquete: t.numeroTiquete,
-                participanteEmail: email || '',
-                nombre: nombre || '',
-                telefono: telefono || ''
-            })
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const grid = document.getElementById('bingoGrid');
+      const totalNumeros = 100;
+      let numeroSeleccionado = null;
+
+      const tiquetesDict = Object.fromEntries(
+        @Html.Raw(Json.Serialize(Model.tiquetes.Select(t => new {
+            key = t.numeroTiquete,
+            value = new {
+                t.estaComprado,
+                t.participanteId,
+                nombre = t.participante?.nombre,
+                email = t.participante?.email,
+                telefono = t.participante?.numeroTelefonico
+            }
+        })))
+        .map(t => [t.key, t.value])
+      );
+
+      const renderNumero = (i) => {
+        const tiquete = tiquetesDict[i];
+        const estaComprado = tiquete?.estaComprado ?? false;
+        const div = document.createElement('div');
+        div.className = `bingo-number relative aspect-square flex items-center justify-center text-center rounded-lg cursor-pointer transition-all duration-200 
+            ${estaComprado ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600 hover:scale-105'}`;
+        div.textContent = i.toString().padStart(2, '0');
+        div.dataset.number = i;
+
+        if (estaComprado) {
+          const tooltip = document.createElement('div');
+          tooltip.className = `tooltip-info absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 translate-y-2 opacity-0 invisible w-56 p-3 rounded-lg shadow-lg bg-white text-sm text-gray-800 border border-gray-200 transition-all duration-300 ease-in-out pointer-events-none`;
+
+          tooltip.innerHTML = `
+              <strong class="block text-indigo-600 mb-1">Comprado por:</strong>
+              <div><strong>Nombre:</strong> ${tiquete?.nombre || 'Desconocido'}</div>
+              <div><strong>Email:</strong> ${tiquete?.email || 'Sin correo'}</div>
+              <div><strong>Teléfono:</strong> ${tiquete?.telefono || 'Sin número'}</div>
+          `;
+          div.appendChild(tooltip);
+
+          div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tooltip.classList.toggle('invisible');
+            tooltip.classList.toggle('opacity-0');
+            tooltip.classList.toggle('translate-y-2');
+          });
+
+          document.addEventListener('click', (event) => {
+            if (!div.contains(event.target)) {
+              tooltip.classList.add('invisible');
+              tooltip.classList.add('opacity-0');
+              tooltip.classList.add('translate-y-2');
+            }
+          });
+
+        } else {
+          div.addEventListener('click', () => {
+            numeroSeleccionado = i;
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('nombre').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('nombre').classList.remove('border-red-500');
+            document.getElementById('telefono').classList.remove('border-red-500');
+          });
+        }
+
+        return div;
+      };
+
+      for (let i = 0; i < totalNumeros; i++) {
+        grid.appendChild(renderNumero(i));
+      }
+
+      document.getElementById('btnCancelar').addEventListener('click', () => {
+        document.getElementById('modal').classList.add('hidden');
+      });
+
+      document.getElementById('btnGuardar').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+
+        const nombreInput = document.getElementById('nombre');
+        const telefonoInput = document.getElementById('telefono');
+
+        let valid = true;
+        if (!nombre) {
+          nombreInput.classList.add('border-red-500');
+          valid = false;
+        } else {
+          nombreInput.classList.remove('border-red-500');
+        }
+        if (!telefono) {
+          telefonoInput.classList.add('border-red-500');
+          valid = false;
+        } else {
+          telefonoInput.classList.remove('border-red-500');
+        }
+
+        if (!valid) return;
+
+        const response = await fetch('@Url.Action("AsignarNumero", "Rifa")', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            rifaID: @Model.id,
+            numeroTiquete: numeroSeleccionado,
+            participanteEmail: email,
+            nombre: nombre,
+            telefono: telefono
+          })
         });
-                        const data = await response.json();
-                        if (data.success) location.reload();
-                        else alert(data.message || 'Error al asignar el número.');
-                    });
-                }
-                grid.appendChild(div);
-            });
-        });
-    </script>
+
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('modal').classList.add('hidden');
+  setTimeout(() => location.reload(), 300); // da tiempo a que se cierre visualmente el modal
+        } else {
+          alert(data.message || 'Error al asignar el número.');
+        }
+      });
+    });
+  </script>
+
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md animate-fade-in-up">
+      <h2 class="text-lg font-semibold mb-4 text-gray-800">Asignar número</h2>
+      <div class="space-y-3">
+        <input id="email" type="email" placeholder="Correo electrónico (opcional)" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <input id="nombre" type="text" placeholder="Nombre completo *" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <input id="telefono" type="tel" placeholder="Teléfono *" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      </div>
+      <div class="mt-5 flex justify-end space-x-3">
+        <button id="btnCancelar" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800">Cancelar</button>
+        <button id="btnGuardar" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+ 
 }

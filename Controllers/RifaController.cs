@@ -60,31 +60,50 @@ public class RifaController : Controller
     public async Task<IActionResult> VerRifa(int id)
     {
         var rifa = await _context.rifas
-            .Include(r => r.tiquetes)
-            .FirstOrDefaultAsync(r => r.id == id);
+         .Include(r => r.tiquetes)
+             .ThenInclude(t => t.participante)
+         .FirstOrDefaultAsync(r => r.id == id);
+
         if (rifa == null) return NotFound();
         return View(rifa);
     }
 
+    
     [HttpPost]
     public async Task<IActionResult> AsignarNumero([FromBody] AsignarNumeroRequest request)
     {
-        var rifa = await _context.rifas.Include(r => r.tiquetes)
+        var rifa = await _context.rifas
+            .Include(r => r.tiquetes)
             .FirstOrDefaultAsync(r => r.id == request.rifaID);
-        if (rifa == null) return NotFound();
+
+        if (rifa == null)
+            return NotFound();
 
         var tiquete = rifa.tiquetes.FirstOrDefault(t => t.numeroTiquete == request.numeroTiquete);
-        if (tiquete == null || tiquete.estaComprado) return Json(new { success = false });
+        if (tiquete == null || tiquete.estaComprado)
+            return Json(new { success = false, message = "El número ya está asignado o no existe." });
+
+        // Validación obligatoria
+        if (string.IsNullOrWhiteSpace(request.nombre) || string.IsNullOrWhiteSpace(request.telefono))
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Debe proporcionar al menos nombre y teléfono del participante."
+            });
+        }
 
         Participante participante = null;
 
-        if (!string.IsNullOrEmpty(request.participanteEmail))
+        // Si hay email, buscar por email primero
+        if (!string.IsNullOrWhiteSpace(request.participanteEmail))
         {
             participante = await _context.participantes
                 .FirstOrDefaultAsync(p => p.email == request.participanteEmail);
 
             if (participante == null)
             {
+                // También verificar si hay usuario relacionado con ese correo
                 var participantesConUser = await _context.participantes
                     .Where(p => p.user != null)
                     .ToListAsync();
@@ -101,31 +120,29 @@ public class RifaController : Controller
             }
         }
 
-        if (participante == null && (!string.IsNullOrEmpty(request.nombre) || !string.IsNullOrEmpty(request.telefono)))
-        {
-            participante = await _context.participantes
-                .FirstOrDefaultAsync(p =>
-                    (string.IsNullOrEmpty(request.nombre) || p.nombre == request.nombre) &&
-                    (string.IsNullOrEmpty(request.telefono) || p.numeroTelefonico == request.telefono));
-
-            if (participante == null)
-            {
-                participante = new Participante
-                {
-                    nombre = request.nombre ?? "Participante Anónimo",
-                    numeroTelefonico = request.telefono ?? "",
-                    email = request.participanteEmail
-                };
-                _context.participantes.Add(participante);
-                await _context.SaveChangesAsync();
-            }
-        }
-
+        // Si no se encontró, buscar por nombre y teléfono
         if (participante == null)
         {
-            return Json(new { success = false, message = "Debe proporcionar un email, nombre o teléfono válidos." });
+            participante = await _context.participantes.FirstOrDefaultAsync(p =>
+                p.nombre == request.nombre &&
+                p.numeroTelefonico == request.telefono
+            );
         }
 
+        // Si no existe todavía, lo creamos
+        if (participante == null)
+        {
+            participante = new Participante
+            {
+                nombre = request.nombre,
+                numeroTelefonico = request.telefono,
+                email = request.participanteEmail
+            };
+            _context.participantes.Add(participante);
+            await _context.SaveChangesAsync();
+        }
+
+        // Asignar tiquete
         tiquete.participanteId = participante.id;
         tiquete.estaComprado = true;
         tiquete.fechaCompra = DateTime.UtcNow;
