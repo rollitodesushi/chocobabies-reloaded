@@ -18,8 +18,8 @@ builder.Services.AddControllersWithViews()
     .AddDataAnnotationsLocalization();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
-    var supportedCultures = new[] { new CultureInfo("es-CO") };
-    options.DefaultRequestCulture = new RequestCulture("es-CO");
+    var supportedCultures = new[] { new CultureInfo("es-CR") };
+    options.DefaultRequestCulture = new RequestCulture("es-CR");
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
 });
@@ -85,9 +85,9 @@ else
 
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
-    DefaultRequestCulture = new RequestCulture("es-CO"),
-    SupportedCultures = new List<CultureInfo> { new CultureInfo("es-CO") },
-    SupportedUICultures = new List<CultureInfo> { new CultureInfo("es-CO") }
+    DefaultRequestCulture = new RequestCulture("es-CR"),
+    SupportedCultures = new List<CultureInfo> { new CultureInfo("es-CR") },
+    SupportedUICultures = new List<CultureInfo> { new CultureInfo("es-CR") }
 });
 
 app.UseStaticFiles();
