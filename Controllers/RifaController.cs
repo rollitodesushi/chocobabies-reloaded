@@ -163,12 +163,63 @@ public class RifaController : Controller
 
         // Asignar tiquete
         tiquete.participanteId = participante.id;
-        tiquete.estaComprado = true;
+        tiquete.estado = request.estado ?? estadoTiquete.Comprado; // Por defecto comprado si no se indica
+        tiquete.comentarios = request.comentarios;
+        tiquete.estaComprado = tiquete.estado == estadoTiquete.Comprado;
         tiquete.fechaCompra = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return Json(new { success = true });
     }
+
+    [HttpPost]
+    public async Task<IActionResult> ModificarParticipante([FromBody] ModificarParticipanteRequest request)
+    {
+        var tiquete = await _context.tiquetes
+            .Include(t => t.participante)
+            .FirstOrDefaultAsync(t => t.id == request.tiqueteId);
+
+        if (tiquete == null)
+            return Json(new { success = false, message = "Tiquete no encontrado." });
+
+        // Validación obligatoria
+        if (string.IsNullOrWhiteSpace(request.nombre) || string.IsNullOrWhiteSpace(request.telefono))
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Debe proporcionar al menos nombre y teléfono del participante."
+            });
+        }
+
+        var participante = tiquete.participante;
+
+        if (participante == null)
+        {
+            participante = new Participante();
+            _context.participantes.Add(participante);
+        }
+
+        participante.nombre = request.nombre;
+        participante.numeroTelefonico = request.telefono;
+        participante.email = request.email;
+
+        // Actualizar solo si se proporcionó nuevo comentario
+        if (!string.IsNullOrWhiteSpace(request.comentarios))
+        {
+            tiquete.comentarios = request.comentarios;
+        }
+
+        // Actualizar estado si fue enviado (por ejemplo, "Reservado")
+        if (request.estado.HasValue)
+        {
+            tiquete.estado = request.estado.Value;
+        }
+
+        await _context.SaveChangesAsync();
+        return Json(new { success = true });
+    }
+
 
     public async Task<IActionResult> Lista()
     {

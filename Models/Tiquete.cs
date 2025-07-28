@@ -2,6 +2,14 @@
 
 namespace ChocobabiesReloaded.Models
 {
+
+    public enum estadoTiquete
+    {
+        Disponible,
+        Reservado,
+        Comprado
+    }
+
     public class Tiquete
     {
 
@@ -18,6 +26,10 @@ namespace ChocobabiesReloaded.Models
         public DateTime fechaCompra { get; set; }
 
         public bool estaComprado { get; set; }
+
+        public estadoTiquete estado { get; set; } = estadoTiquete.Disponible;
+
+        public string? comentarios { get; set; } // Nuevo campo para observaciones
 
     }
 }

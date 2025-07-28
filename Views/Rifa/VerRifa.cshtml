@@ -9,12 +9,115 @@
     <div id="bingoGrid" class="bingo-grid grid grid-cols-10 sm:grid-cols-10 md:grid-cols-10 gap-2"></div>
     <div class="mt-4 text-center">
         <span class="bg-green-500 text-white px-2 py-1 rounded mr-2">Disponible</span>
+        <span class="bg-orange-400 text-white px-2 py-1 rounded mr-2">Reservado</span>
         <span class="bg-red-500 text-white px-2 py-1 rounded">Comprado</span>
     </div>
 </div>
 
+<!-- Modal para editar participante -->
+<div id="editarParticipanteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+        <button onclick="cerrarEditarModal()" class="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl">&times;</button>
+        <h2 class="text-xl font-semibold mb-4">Editar Participante</h2>
+
+        <form id="formEditarParticipante" onsubmit="return guardarEdicionParticipante()">
+            <input type="hidden" id="editarRifaId" />
+            <input type="hidden" id="editarNumero" />
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                <input type="text" id="editarNombre" required class="mt-1 block w-full border rounded-md px-3 py-2" />
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">Teléfono</label>
+                <input type="text" id="editarTelefono" required class="mt-1 block w-full border rounded-md px-3 py-2" />
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="editarEmail" class="mt-1 block w-full border rounded-md px-3 py-2" />
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">Estado</label>
+                <select id="editarEstado" class="mt-1 block w-full border rounded-md px-3 py-2">
+                    <option value="Comprado">Comprado</option>
+                    <option value="Reservado">Reservado</option>
+                    <option value="Disponible">Disponible</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Comentarios</label>
+                <textarea id="editarComentarios" rows="3" class="mt-1 block w-full border rounded-md px-3 py-2 resize-none"></textarea>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="cerrarEditarModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md">Cancelar</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
 @section Scripts {
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    function abrirEditarModal(rifaId, numero, participante) {
+        document.getElementById("editarRifaId").value = rifaId;
+        document.getElementById("editarNumero").value = numero;
+        document.getElementById("editarNombre").value = participante.nombre || "";
+        document.getElementById("editarTelefono").value = participante.numeroTelefonico || "";
+        document.getElementById("editarEmail").value = participante.email || "";
+        document.getElementById("editarEstado").value = participante.estado || "Comprado";
+        document.getElementById("editarComentarios").value = participante.comentarios || "";
+
+        document.getElementById("editarParticipanteModal").classList.remove("hidden");
+        document.getElementById("editarParticipanteModal").classList.add("flex");
+    }
+
+    function cerrarEditarModal() {
+        document.getElementById("editarParticipanteModal").classList.add("hidden");
+        document.getElementById("editarParticipanteModal").classList.remove("flex");
+    }
+
+    function guardarEdicionParticipante() {
+        const rifaId = parseInt(document.getElementById("editarRifaId").value);
+        const numero = parseInt(document.getElementById("editarNumero").value);
+
+        const data = {
+            rifaID: rifaId,
+            numeroTiquete: numero,
+            nombre: document.getElementById("editarNombre").value.trim(),
+            telefono: document.getElementById("editarTelefono").value.trim(),
+            participanteEmail: document.getElementById("editarEmail").value.trim(),
+            estado: document.getElementById("editarEstado").value,
+            comentarios: document.getElementById("editarComentarios").value.trim()
+        };
+
+        fetch("/Rifa/ModificarParticipante", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+        .then(resp => resp.json())
+        .then(res => {
+            if (res.success) {
+                alert("Participante actualizado correctamente.");
+                location.reload(); // Refrescar página para reflejar cambios
+            } else {
+                alert("Error: " + res.message);
+            }
+        });
+
+        return false; // prevenir recarga del formulario
+    }
+</script>
+
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -142,6 +245,8 @@
         }
       });
     });
+
+
   </script>
 
   <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
