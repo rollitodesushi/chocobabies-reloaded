@@ -50,26 +50,27 @@
             let editandoParticipante = false;
             let tiqueteIdEditando = null;
 
-            const tiquetesDict = {};
-                                 @foreach (var t in Model.tiquetes)
+                          const tiquetesDict = {};
+        @foreach (var t in Model.tiquetes)
         {
-                var nombre = (t.participante?.nombre ?? "").Replace("\"", "\\\"").Replace("\n", "\\n");
-                var email = (t.participante?.email ?? "").Replace("\"", "\\\"").Replace("\n", "\\n");
-                var telefono = (t.participante?.numeroTelefonico ?? "").Replace("\"", "\\\"").Replace("\n", "\\n");
                 var estado = (int)t.estado;
-                var comentarios = (t.comentarios ?? "").Replace("\\", "\\\\").Replace("`", "\\u0060").Replace("\n", "\\n").Replace("\"", "\\\"");
                 var participanteId = t.participanteId.HasValue ? t.participanteId.Value.ToString() : "null";
+
+                var nombreJS = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(t.participante?.nombre ?? "");
+                var emailJS = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(t.participante?.email ?? "");
+                var telefonoJS = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(t.participante?.numeroTelefonico ?? "");
+                var comentariosJS = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(t.comentarios ?? "");
 
                 <text>
                 tiquetesDict[@t.numeroTiquete] = {
                     tiqueteId: @t.id,
                     estaComprado: @(t.estaComprado.ToString().ToLower()),
                     participanteId: @participanteId,
-                    nombre: "@nombre",
-                    email: "@email",
-                    telefono: "@telefono",
+                    nombre: "@Html.Raw(nombreJS)",
+                    email: "@Html.Raw(emailJS)",
+                    telefono: "@Html.Raw(telefonoJS)",
                     estado: @estado,
-                    comentarios: `@comentarios`
+                    comentarios: "@Html.Raw(comentariosJS)"
                 };
                 </text>
         }
