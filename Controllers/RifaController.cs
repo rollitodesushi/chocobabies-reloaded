@@ -250,4 +250,32 @@ public class RifaController : Controller
         var rifas = await _context.rifas.ToListAsync();
         return View(rifas);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> EliminarParticipante([FromBody] EliminarParticipanteRequest request)
+    {
+        var tiquete = await _context.tiquetes
+            .Include(t => t.participante)
+            .FirstOrDefaultAsync(t => t.id == request.tiqueteId);
+
+        if (tiquete == null)
+        {
+            return Json(new { success = false, message = "Tiquete no encontrado." });
+        }
+
+        // Eliminar vínculo con el participante
+        tiquete.participanteId = null;
+        tiquete.participante = null;
+
+        // Resetear estado y propiedades relacionadas
+        tiquete.estado = estadoTiquete.Disponible;
+        tiquete.estaComprado = false;
+        tiquete.fechaCompra = DateTime.MinValue;
+        tiquete.comentarios = null;
+
+        await _context.SaveChangesAsync();
+        return Json(new { success = true });
+    }
+
+
 }
