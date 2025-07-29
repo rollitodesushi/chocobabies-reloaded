@@ -1,35 +1,1 @@
-﻿
-
-namespace ChocobabiesReloaded.Models
-{
-
-    public enum estadoTiquete
-    {
-        Disponible,
-        Reservado,
-        Comprado
-    }
-
-    public class Tiquete
-    {
-
-        public int id { get; set; }
-        public int rifaID { get; set; }
-        public Rifa rifa { get; set; }
-
-        public int? participanteId { get; set; }
-
-        public Participante participante { get; set; }
-
-        public int numeroTiquete { get; set; }
-
-        public DateTime fechaCompra { get; set; }
-
-        public bool estaComprado { get; set; }
-
-        public estadoTiquete estado { get; set; } = estadoTiquete.Disponible;
-
-        public string? comentarios { get; set; } // Nuevo campo para observaciones
-
-    }
-}
+﻿  namespace ChocobabiesReloaded.Models {      public enum estadoTiquete     {         Disponible,         Reservado,         Comprado     }      public class Tiquete     {          public int id { get; set; }         public int rifaID { get; set; }         public Rifa rifa { get; set; }          public int? participanteId { get; set; }          public Participante participante { get; set; }          public int numeroTiquete { get; set; }          public DateTime fechaCompra { get; set; }          public bool estaComprado { get; set; }          public estadoTiquete estado { get; set; } = estadoTiquete.Disponible;          public string? comentarios { get; set; } // Nuevo campo para observaciones      } } 

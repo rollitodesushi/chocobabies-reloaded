@@ -14,255 +14,184 @@
     </div>
 </div>
 
-<!-- Modal para editar participante -->
-<div id="editarParticipanteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
-        <button onclick="cerrarEditarModal()" class="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl">&times;</button>
-        <h2 class="text-xl font-semibold mb-4">Editar Participante</h2>
+<!-- Modal para asignar o modificar participante -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md animate-fade-in-up">
+        <h2 id="modalTitle" class="text-lg font-semibold mb-4 text-gray-800">Asignar número</h2>
+        <div class="space-y-3">
+            <input id="email" type="email" placeholder="Correo electrónico (opcional)" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input id="nombre" type="text" placeholder="Nombre completo *" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input id="telefono" type="tel" placeholder="Teléfono *" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <select id="estado" class="form-select" aria-label="Estado del tiquete">
+                <option value="2">Comprado</option>   <!-- estadoTiquete.Comprado -->
+                <option value="1">Reservado</option>  <!-- estadoTiquete.Reservado -->
+                <option value="0">Disponible</option> <!-- estadoTiquete.Disponible -->
+            </select>
 
-        <form id="formEditarParticipante" onsubmit="return guardarEdicionParticipante()">
-            <input type="hidden" id="editarRifaId" />
-            <input type="hidden" id="editarNumero" />
-
-            <div class="mb-3">
-                <label class="block text-sm font-medium text-gray-700">Nombre</label>
-                <input type="text" id="editarNombre" required class="mt-1 block w-full border rounded-md px-3 py-2" />
-            </div>
-
-            <div class="mb-3">
-                <label class="block text-sm font-medium text-gray-700">Teléfono</label>
-                <input type="text" id="editarTelefono" required class="mt-1 block w-full border rounded-md px-3 py-2" />
-            </div>
-
-            <div class="mb-3">
-                <label class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" id="editarEmail" class="mt-1 block w-full border rounded-md px-3 py-2" />
-            </div>
-
-            <div class="mb-3">
-                <label class="block text-sm font-medium text-gray-700">Estado</label>
-                <select id="editarEstado" class="mt-1 block w-full border rounded-md px-3 py-2">
-                    <option value="Comprado">Comprado</option>
-                    <option value="Reservado">Reservado</option>
-                    <option value="Disponible">Disponible</option>
-                </select>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Comentarios</label>
-                <textarea id="editarComentarios" rows="3" class="mt-1 block w-full border rounded-md px-3 py-2 resize-none"></textarea>
-            </div>
-
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="cerrarEditarModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md">Cancelar</button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Guardar cambios</button>
-            </div>
-        </form>
+            <textarea id="comentarios" rows="2" placeholder="Comentarios (opcional)" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+        </div>
+        <div class="mt-5 flex justify-end space-x-3">
+            <button id="btnCancelar" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800">Cancelar</button>
+            <button id="btnGuardar" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</button>
+        </div>
     </div>
 </div>
 
-
-
 @section Scripts {
-  <script src="https://cdn.tailwindcss.com"></script>
+    <script>
 
-  <script>
-    function abrirEditarModal(rifaId, numero, participante) {
-        document.getElementById("editarRifaId").value = rifaId;
-        document.getElementById("editarNumero").value = numero;
-        document.getElementById("editarNombre").value = participante.nombre || "";
-        document.getElementById("editarTelefono").value = participante.numeroTelefonico || "";
-        document.getElementById("editarEmail").value = participante.email || "";
-        document.getElementById("editarEstado").value = participante.estado || "Comprado";
-        document.getElementById("editarComentarios").value = participante.comentarios || "";
+                const urlAsignarNumero = '@Url.Action("AsignarNumero", "Rifa")';
+        const urlModificarParticipante = '@Url.Action("ModificarParticipante", "Rifa")';
 
-        document.getElementById("editarParticipanteModal").classList.remove("hidden");
-        document.getElementById("editarParticipanteModal").classList.add("flex");
-    }
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById('bingoGrid');
+            const totalNumeros = 100;
+            let numeroSeleccionado = null;
+            let editandoParticipante = false;
+            let tiqueteIdEditando = null;
 
-    function cerrarEditarModal() {
-        document.getElementById("editarParticipanteModal").classList.add("hidden");
-        document.getElementById("editarParticipanteModal").classList.remove("flex");
-    }
+            const tiquetesDict = {};
+                                 @foreach (var t in Model.tiquetes)
+        {
+                var nombre = (t.participante?.nombre ?? "").Replace("\"", "\\\"").Replace("\n", "\\n");
+                var email = (t.participante?.email ?? "").Replace("\"", "\\\"").Replace("\n", "\\n");
+                var telefono = (t.participante?.numeroTelefonico ?? "").Replace("\"", "\\\"").Replace("\n", "\\n");
+                var estado = (int)t.estado;
+                var comentarios = (t.comentarios ?? "").Replace("\\", "\\\\").Replace("`", "\\u0060").Replace("\n", "\\n").Replace("\"", "\\\"");
+                var participanteId = t.participanteId.HasValue ? t.participanteId.Value.ToString() : "null";
 
-    function guardarEdicionParticipante() {
-        const rifaId = parseInt(document.getElementById("editarRifaId").value);
-        const numero = parseInt(document.getElementById("editarNumero").value);
+                <text>
+                tiquetesDict[@t.numeroTiquete] = {
+                    tiqueteId: @t.id,
+                    estaComprado: @(t.estaComprado.ToString().ToLower()),
+                    participanteId: @participanteId,
+                    nombre: "@nombre",
+                    email: "@email",
+                    telefono: "@telefono",
+                    estado: @estado,
+                    comentarios: `@comentarios`
+                };
+                </text>
+        }
 
-        const data = {
-            rifaID: rifaId,
-            numeroTiquete: numero,
-            nombre: document.getElementById("editarNombre").value.trim(),
-            telefono: document.getElementById("editarTelefono").value.trim(),
-            participanteEmail: document.getElementById("editarEmail").value.trim(),
-            estado: document.getElementById("editarEstado").value,
-            comentarios: document.getElementById("editarComentarios").value.trim()
+
+            const abrirModal = (modoEdicion, tiquete = null, numero = null) => {
+                editandoParticipante = modoEdicion;
+                numeroSeleccionado = numero;
+               tiqueteIdEditando = tiquete?.tiqueteId || null;
+                       const estadoEnumMap = {
+            'Disponible': 0,
+            'Reservado': 1,
+            'Comprado': 2
         };
 
-        fetch("/Rifa/ModificarParticipante", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        })
-        .then(resp => resp.json())
-        .then(res => {
-            if (res.success) {
-                alert("Participante actualizado correctamente.");
-                location.reload(); // Refrescar página para reflejar cambios
+
+
+                document.getElementById('modalTitle').textContent = modoEdicion ? 'Modificar participante' : 'Asignar número';
+                document.getElementById('email').value = tiquete?.email || '';
+                document.getElementById('nombre').value = tiquete?.nombre || '';
+                document.getElementById('telefono').value = tiquete?.telefono || '';
+                //document.getElementById('estado').value = tiquete ? estadoEnumMap[tiquete.estado] : 2;
+                document.getElementById('estado').value = tiquete ? tiquete.estado : 2;
+
+                document.getElementById('comentarios').value = tiquete?.comentarios || '';
+
+                document.getElementById('modal').classList.remove('hidden');
+            };
+
+            const renderNumero = (i) => {
+                const tiquete = tiquetesDict[i];
+                let color = 'bg-green-500';
+                if (tiquete) {
+                           if (tiquete.estado == 1) color = 'bg-orange-400';      // Reservado
+        else if (tiquete.estado == 2) color = 'bg-red-500';    // Comprado
+
+                }
+                const div = document.createElement('div');
+                div.className = `bingo-number relative aspect-square flex items-center justify-center text-center rounded-lg cursor-pointer transition-all duration-200 ${color} text-white hover:scale-105`;
+                div.textContent = i.toString().padStart(2, '0');
+                div.dataset.number = i;
+
+                if (tiquete && tiquete.participanteId) {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = `tooltip-info absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 translate-y-2 opacity-0 invisible w-56 p-3 rounded-lg shadow-lg bg-white text-sm text-gray-800 border border-gray-200 transition-all duration-300 ease-in-out pointer-events-none`;
+                    tooltip.innerHTML = `
+                        <strong class="block text-indigo-600 mb-1">Asignado a:</strong>
+                        <div><strong>Nombre:</strong> ${tiquete.nombre}</div>
+                        <div><strong>Email:</strong> ${tiquete.email}</div>
+                        <div><strong>Teléfono:</strong> ${tiquete.telefono}</div>
+                        <div><strong>Comentarios:</strong> ${tiquete.comentarios}</div>
+                    `;
+                    div.appendChild(tooltip);
+                    div.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        abrirModal(true, tiquete, i);
+                    });
+                } else {
+                    div.addEventListener('click', () => {
+                        abrirModal(false, null, i);
+                    });
+                }
+                return div;
+            };
+
+            for (let i = 0; i < totalNumeros; i++) {
+                grid.appendChild(renderNumero(i));
+            }
+
+            document.getElementById('btnCancelar').addEventListener('click', () => {
+                document.getElementById('modal').classList.add('hidden');
+            });
+
+                    document.getElementById('btnGuardar').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const nombre = document.getElementById('nombre').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const estado = parseInt(document.getElementById('estado').value);
+            const comentarios = document.getElementById('comentarios').value.trim();
+
+            if (!nombre || !telefono) {
+                alert('Nombre y teléfono son obligatorios.');
+                return;
+            }
+
+            const url = editandoParticipante ? urlModificarParticipante : urlAsignarNumero;
+
+            const payload = editandoParticipante ? {
+                tiqueteId: tiqueteIdEditando,
+                nombre,
+                telefono,
+                email,
+                estado,
+                comentarios
+            } : {
+                rifaID: @Model.id,
+                numeroTiquete: numeroSeleccionado,
+                participanteEmail: email,
+                nombre,
+                telefono,
+                estado,
+                comentarios
+            };
+
+            console.log("Payload a enviar:", payload);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('modal').classList.add('hidden');
+                setTimeout(() => location.reload(), 300);
             } else {
-                alert("Error: " + res.message);
+                alert(data.message || 'Error al guardar la información.');
             }
         });
 
-        return false; // prevenir recarga del formulario
-    }
-</script>
-
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const grid = document.getElementById('bingoGrid');
-      const totalNumeros = 100;
-      let numeroSeleccionado = null;
-
-      const tiquetesDict = Object.fromEntries(
-        @Html.Raw(Json.Serialize(Model.tiquetes.Select(t => new {
-            key = t.numeroTiquete,
-            value = new {
-                t.estaComprado,
-                t.participanteId,
-                nombre = t.participante?.nombre,
-                email = t.participante?.email,
-                telefono = t.participante?.numeroTelefonico
-            }
-        })))
-        .map(t => [t.key, t.value])
-      );
-
-      const renderNumero = (i) => {
-        const tiquete = tiquetesDict[i];
-        const estaComprado = tiquete?.estaComprado ?? false;
-        const div = document.createElement('div');
-        div.className = `bingo-number relative aspect-square flex items-center justify-center text-center rounded-lg cursor-pointer transition-all duration-200 
-            ${estaComprado ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-500 text-white hover:bg-green-600 hover:scale-105'}`;
-        div.textContent = i.toString().padStart(2, '0');
-        div.dataset.number = i;
-
-        if (estaComprado) {
-          const tooltip = document.createElement('div');
-          tooltip.className = `tooltip-info absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 translate-y-2 opacity-0 invisible w-56 p-3 rounded-lg shadow-lg bg-white text-sm text-gray-800 border border-gray-200 transition-all duration-300 ease-in-out pointer-events-none`;
-
-          tooltip.innerHTML = `
-              <strong class="block text-indigo-600 mb-1">Comprado por:</strong>
-              <div><strong>Nombre:</strong> ${tiquete?.nombre || 'Desconocido'}</div>
-              <div><strong>Email:</strong> ${tiquete?.email || 'Sin correo'}</div>
-              <div><strong>Teléfono:</strong> ${tiquete?.telefono || 'Sin número'}</div>
-          `;
-          div.appendChild(tooltip);
-
-          div.addEventListener('click', (e) => {
-            e.stopPropagation();
-            tooltip.classList.toggle('invisible');
-            tooltip.classList.toggle('opacity-0');
-            tooltip.classList.toggle('translate-y-2');
-          });
-
-          document.addEventListener('click', (event) => {
-            if (!div.contains(event.target)) {
-              tooltip.classList.add('invisible');
-              tooltip.classList.add('opacity-0');
-              tooltip.classList.add('translate-y-2');
-            }
-          });
-
-        } else {
-          div.addEventListener('click', () => {
-            numeroSeleccionado = i;
-            document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('email').value = '';
-            document.getElementById('nombre').value = '';
-            document.getElementById('telefono').value = '';
-            document.getElementById('nombre').classList.remove('border-red-500');
-            document.getElementById('telefono').classList.remove('border-red-500');
-          });
-        }
-
-        return div;
-      };
-
-      for (let i = 0; i < totalNumeros; i++) {
-        grid.appendChild(renderNumero(i));
-      }
-
-      document.getElementById('btnCancelar').addEventListener('click', () => {
-        document.getElementById('modal').classList.add('hidden');
-      });
-
-      document.getElementById('btnGuardar').addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const nombre = document.getElementById('nombre').value.trim();
-        const telefono = document.getElementById('telefono').value.trim();
-
-        const nombreInput = document.getElementById('nombre');
-        const telefonoInput = document.getElementById('telefono');
-
-        let valid = true;
-        if (!nombre) {
-          nombreInput.classList.add('border-red-500');
-          valid = false;
-        } else {
-          nombreInput.classList.remove('border-red-500');
-        }
-        if (!telefono) {
-          telefonoInput.classList.add('border-red-500');
-          valid = false;
-        } else {
-          telefonoInput.classList.remove('border-red-500');
-        }
-
-        if (!valid) return;
-
-        const response = await fetch('@Url.Action("AsignarNumero", "Rifa")', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            rifaID: @Model.id,
-            numeroTiquete: numeroSeleccionado,
-            participanteEmail: email,
-            nombre: nombre,
-            telefono: telefono
-          })
         });
-
-        const data = await response.json();
-        if (data.success) {
-          document.getElementById('modal').classList.add('hidden');
-  setTimeout(() => location.reload(), 300); // da tiempo a que se cierre visualmente el modal
-        } else {
-          alert(data.message || 'Error al asignar el número.');
-        }
-      });
-    });
-
-
-  </script>
-
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md animate-fade-in-up">
-      <h2 class="text-lg font-semibold mb-4 text-gray-800">Asignar número</h2>
-      <div class="space-y-3">
-        <input id="email" type="email" placeholder="Correo electrónico (opcional)" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <input id="nombre" type="text" placeholder="Nombre completo *" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <input id="telefono" type="tel" placeholder="Teléfono *" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-      </div>
-      <div class="mt-5 flex justify-end space-x-3">
-        <button id="btnCancelar" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800">Cancelar</button>
-        <button id="btnGuardar" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</button>
-      </div>
-    </div>
-  </div>
-
- 
+    </script>
 }
+

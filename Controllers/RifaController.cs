@@ -23,7 +23,7 @@ public class RifaController : Controller
         return View(new Rifa { cantidadNumeros = 100 });
     }
 
-    [HttpPost]
+    
     [HttpPost]
     public async Task<IActionResult> Crear(Rifa rifa)
     {
@@ -162,10 +162,33 @@ public class RifaController : Controller
         }
 
         // Asignar tiquete
-        tiquete.participanteId = participante.id;
-        tiquete.estado = request.estado ?? estadoTiquete.Comprado; // Por defecto comprado si no se indica
+        // Determinar estado real del tiquete
+        var estadoFinal = estadoTiquete.Disponible; // valor por defecto
+
+        if (request.estado.HasValue && Enum.IsDefined(typeof(estadoTiquete), request.estado.Value))
+        {
+            estadoFinal = (estadoTiquete)request.estado.Value;
+        }
+        else
+        {
+            estadoFinal = estadoTiquete.Comprado; // o el que desees por defecto
+        }
+
+
+        // Validación: si hay un participante, el estado NO puede ser Disponible
+        if (estadoFinal == estadoTiquete.Disponible && participante != null)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "No se puede asignar un participante si el estado es Disponible."
+            });
+        }
+
+        tiquete.participanteId = participante?.id;
+        tiquete.estado = estadoFinal;
         tiquete.comentarios = request.comentarios;
-        tiquete.estaComprado = tiquete.estado == estadoTiquete.Comprado;
+        tiquete.estaComprado = estadoFinal == estadoTiquete.Comprado;
         tiquete.fechaCompra = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -211,10 +234,11 @@ public class RifaController : Controller
         }
 
         // Actualizar estado si fue enviado (por ejemplo, "Reservado")
-        if (request.estado.HasValue)
+        if (request.estado.HasValue && Enum.IsDefined(typeof(estadoTiquete), request.estado.Value))
         {
-            tiquete.estado = request.estado.Value;
+            tiquete.estado = (estadoTiquete)request.estado.Value;
         }
+
 
         await _context.SaveChangesAsync();
         return Json(new { success = true });

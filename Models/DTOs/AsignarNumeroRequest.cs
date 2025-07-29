@@ -7,8 +7,7 @@
         public string participanteEmail { get; set; }
         public string nombre { get; set; }
         public string telefono { get; set; }
-
-        public estadoTiquete? estado { get; set; }
-        public string? comentarios { get; set; }
+        public int? estado { get; set; } // Cambiar de estadoTiquete? a int?
+        public string comentarios { get; set; }
     }
 }
